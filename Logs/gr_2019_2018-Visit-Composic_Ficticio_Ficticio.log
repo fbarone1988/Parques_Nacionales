@@ -1,0 +1,568 @@
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Franco\Dropbox\GitHub\Parques_Nacionales\Logs/gr_2019_2018-Visit-Composic_Ficticio.log
+  log type:  text
+ opened on:  26 Feb 2021, 20:05:34
+
+. set linesize 255
+
+. set more off
+
+. clear
+
+. 
+. cap mkdir "Gráficos"
+
+. cap mkdir "Gráficos/2019/Composición"
+
+. cap mkdir "Gráficos/2019/Composición/AP"
+
+. cap mkdir "Gráficos/2019/Composición/AP/Nacionales_desagregado"
+
+. cap mkdir "Gráficos/2019/Composición/AP/Extranjeros_Nacionales"
+
+. 
+. use "Bases/2019-Visit_Ficticio"
+(Visitación 2019 - APN DNUP DM. Fuente: DATOS FICTICIOS.)
+
+. merge 1:m AP using "Bases/2018-Visit_Ficticio.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                70  (_merge==3)
+    -----------------------------------------
+
+. drop if Port=="Subtotal" 
+(32 observations deleted)
+
+. keep AP Reg Categ* Port Acceso total_2019* total_2018*
+
+. replace Reg = proper(Reg) in 1/`=_N-1'
+(37 real changes made)
+
+. drop if Port =="Subtotal"
+(0 observations deleted)
+
+. 
+. replace Categ = "Parque Nacional" if Categ =="PN"
+variable Categoría was str8 now str15
+(32 real changes made)
+
+. replace Categ = "Reserva Natural Educativa" if Categ =="RNEd"
+variable Categoría was str15 now str25
+(1 real change made)
+
+. replace Categ = "Reserva Natural" if Categ =="RNat"
+(1 real change made)
+
+. replace Categ = "Monumento Natural" if Categ =="MN"
+(1 real change made)
+
+. replace Categ = "Reserva Nacional" if Categ =="RNac"
+(2 real changes made)
+
+. 
+. gen AP_Cat = Categ+" "+AP
+
+. replace AP_Cat= "Total de Áreas Protegidas" if AP_Cat =="Total AP Total AP"
+(1 real change made)
+
+. 
+. levelsof AP_Cat if total_2019total >0, local(AP_Cat) 
+`"Monumento Natural Laguna de los Pozuelos"' `"Parque Nacional Aconquija"' `"Parque Nacional Baritú"' `"Parque Nacional Bosques Petrificados"' `"Parque Nacional Calilegua"' `"Parque Nacional Chaco"' `"Parque Nacional Ciervo de los Pantanos"' `"Parque Naci
+> onal El Impenetrable"' `"Parque Nacional El Leoncito"' `"Parque Nacional El Palmar"' `"Parque Nacional El Rey"' `"Parque Nacional Iberá"' `"Parque Nacional Iguazú"' `"Parque Nacional Lago Puelo"' `"Parque Nacional Laguna Blanca"' `"Parque Nacional Lanín
+> "' `"Parque Nacional Lihué Calel"' `"Parque Nacional Los Alerces"' `"Parque Nacional Los Cardones"' `"Parque Nacional Los Glaciares"' `"Parque Nacional Mburucuyá"' `"Parque Nacional Monte León"' `"Parque Nacional Nahuel Huapi"' `"Parque Nacional Perito 
+> Moreno"' `"Parque Nacional Pre Delta"' `"Parque Nacional Quebrada del Condorito"' `"Parque Nacional Río Pilcomayo"' `"Parque Nacional San Guillermo"' `"Parque Nacional Sierra de las Quijadas"' `"Parque Nacional Talampaya"' `"Parque Nacional Tierra del F
+> uego"' `"Reserva Nacional Nogalar de los Toldos"' `"Reserva Natural Educativa Colonia Benítez"' `"Reserva Natural Formosa"' `"Total de Áreas Protegidas"'
+
+. label var AP_Cat "Categoría + nombre AP"
+
+. /*
+> // 0) Pie "Composición de la visitación nacionales 2019
+> foreach i of local AP_Cat {
+>         graph pie total_2019nacmay total_2019rprov total_2019rloc                     ///
+>                   total_2019est total_2019jp total_2019men if AP_Cat == "`i'",            ///                                                 
+>                   legend(label(1 "Nac. Mayores") label(2 "Res. Provinciales")             ///
+>                   label(3 "Res. Locales") label(4 "Estudiantes")                          ///
+>           label(5 "Jub. y Pens.") label(6 "Menores"))                             ///
+>                   legend(size(vsmall) region(lwidth(none)) cols(6)) plabel(_all per ,     ///
+>           format(%9.0f) size(small) color(white)) ysize(10) xsize(20)             ///
+>                   graphregion(fcolor(white))                                              ///
+>                   title("`i'")                                                            ///
+>               subtitle("Composición de visitantes nacionales 2019",lcolor(gs12)       ///
+>           fcolor(gs15))                                                           ///
+>                   note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.") 
+>         graph export "Gráficos/2019/Composición/AP/Nacionales_desagregado/`i'_xNac_2019_pie.png", ///
+>                   width(1000) replace     
+> }
+> 
+> // 0) Pie "Composición de la visitación Ext-Nac
+> foreach i of local AP_Cat {
+>         graph pie total_2019ext total_2019nactotal if AP_Cat == "`i'",                ///                                                 
+>                   legend(label(1 "Extranjeros") label(2 "Nacionales"))                    ///
+>                   legend(size(vsmall) region(lwidth(none))) plabel(_all per ,             ///
+>           format(%9.0f) size(small) color(white)) ysize(10) xsize(20)             ///
+>                   graphregion(fcolor(white))                                              ///
+>                   title("`i'")                                                            ///
+>                   subtitle("Visitantes nacionales y extranjeros 2019",lcolor(gs12)        ///
+>           fcolor(gs15))                                                           ///  
+>                   note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.") 
+>         graph export "Gráficos/2019/Composición/AP/Extranjeros_Nacionales/`i'_xExt-Nac_2019_pie.png", ///
+>                   width(1000) replace 
+>           
+> }
+> */
+. // 1) Pie "Composición de la visitación total y por región 2019"
+. graph pie total_2019ext total_2019nacmay total_2019rprov total_2019rloc           ///
+>       total_2019est total_2019jp total_2019men if total_2019total>0, by(Reg,      ///
+>       graphregion(fcolor(white))                                                  ///
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.") ///
+>       title("Composición de la visitación total y por región 2019"))              ///                         
+>       legend(label(1 "Extranjeros") label(2 "Nac. Mayores")                       ///
+>       label(3 "Res. Provinciales")label(4 "Res.Locales")                          ///
+>       label(5 "Estudiantes") label(6 "Jub. y Pens.")                              ///
+>       label(7 "Menores"))                                                         ///
+>       legend(size(vsmall) region(lwidth(none)) cols(7)) plabel(_all per ,         ///
+>       format(%9.0f) size(vsmall) color(white)) ysize(10) xsize(20)                ///
+>       subtitle(,lcolor(gs12) fcolor(gs15))                                   
+
+. graph export "Gráficos/2019/Composición/1_Visit_xCat_2019reg_pie.png",            ///
+>       width(1000) replace
+(note: file Gráficos/2019/Composición/1_Visit_xCat_2019reg_pie.png not found)
+(file Gráficos/2019/Composición/1_Visit_xCat_2019reg_pie.png written in PNG format)
+
+. 
+. label var total_2019ext "Extranjeros"
+
+. label var total_2019nacmay "Nac. Mayores"
+
+. label var total_2019rprov "Res. Provinciales"
+
+. label var total_2019rloc "Res. Locales"
+
+. label var total_2019est "Estudiantes"
+
+. label var total_2019jp "Jub. y Pens."
+
+. label var total_2019men "Menores"
+
+. 
+. // 2) Bar "Composición de la visitación por región y total 2019"
+. graph hbar (sum) total_2019ext total_2019nacmay total_2019rprov                   ///
+>       total_2019rloc total_2019est total_2019jp total_2019men if                  ///
+>       total_2019total>0, by(Reg, graphregion(fcolor(white))                       /// 
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.") ///
+>       title("Composición de la visitación por región y total 2019")               ///
+>       subtitle("% de visitantes"))                                                ///
+>       stack percent blabel(bar, color(white) position(center) size(vsmall)        ///
+>       format(%9.0f) justification(center))                                        ///
+>       legend(region(lwidth(none)) size(vsmall) cols(7)) xsize(20) ysize(10)       ///
+>       scale(1) graphregion(color(white)) ytitle("") ylabel(,nogrid)               ///
+>       yvar(relabel(1 "`: var label total_2019ext'"                                ///
+>       2 "`: var label total_2019nacmay'" 3 "`: var label total_2019rprov'"        ///
+>       4 "`: var label total_2019rloc'" 5 "`: var label total_2019est'"            ///
+>       6 "`: var label total_2019jp'" 7 "`: var label total_2019men'"))            ///
+>       subtitle(,lcolor(gs12) fcolor(gs15)) play("Gráficos/2019/Composición/Preferencias/P1")
+
+. 
+.           local ng=`.Graph.graphs.arrnels'
+
+.           forval g=1/`ng' {
+  2.                   local nb=`.Graph.graphs[`g'].plotregion1.barlabels.arrnels'
+  3.                   forval i=1/`nb' {
+  4.                           di "`.Graph.graphs[`g'].plotregion1.barlabels[`i'].text[1]'"
+  5.                           .Graph.graphs[`g'].plotregion1.barlabels[`i'].text[1]="`.Graph.graphs[`g'].plotregion1.barlabels[`i'].text[1]'%"
+  6.                   }
+  7.            }
+4
+38
+19
+10
+4
+13
+12
+38
+38
+3
+1
+1
+6
+12
+8
+47
+6
+7
+5
+23
+4
+35
+27
+5
+13
+7
+7
+5
+33
+33
+6
+8
+4
+8
+9
+
+.            .Graph.drawgraph
+
+.            graph export "Gráficos/2019/Composición/2_Comp_2019hbar.png",              ///
+>            width(1000)replace
+(note: file Gráficos/2019/Composición/2_Comp_2019hbar.png not found)
+(file Gráficos/2019/Composición/2_Comp_2019hbar.png written in PNG format)
+
+. 
+. // 3) Pie "Composición de la visitación por región y total 2019"
+. replace Reg = "del total de Áreas Protegidas" in L
+variable Región was str9 now str30
+(1 real change made)
+
+. foreach i in Nea Noa Patagonia Centro "del total de Áreas Protegidas" {
+  2.     graph pie total_2019ext total_2019nacmay total_2019rprov total_2019rloc       ///
+>           total_2019est total_2019jp total_2019men if Reg == "`i'",               ///
+>               title("Composición visitación `i' 2019")                                ///
+>           graphregion(fcolor(white)) legend(region(lwidth(none))                  ///
+>               size(vsmall) cols(7)) plabel(_all per , format(%9.0f) size(small)       ///           
+>               color(white)) ysize(10) xsize(20) subtitle(,lcolor(gs12)                ///
+>               fcolor(gs15))                                                           ///    
+>           note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.") 
+  3.     graph export "Gráficos/2019/Composición/3_Comp_`i'_2019pie.png",              ///
+>           width(1000)replace
+  4. }
+(note: file Gráficos/2019/Composición/3_Comp_Nea_2019pie.png not found)
+(file Gráficos/2019/Composición/3_Comp_Nea_2019pie.png written in PNG format)
+(note: file Gráficos/2019/Composición/3_Comp_Noa_2019pie.png not found)
+(file Gráficos/2019/Composición/3_Comp_Noa_2019pie.png written in PNG format)
+(note: file Gráficos/2019/Composición/3_Comp_Patagonia_2019pie.png not found)
+(file Gráficos/2019/Composición/3_Comp_Patagonia_2019pie.png written in PNG format)
+(note: file Gráficos/2019/Composición/3_Comp_Centro_2019pie.png not found)
+(file Gráficos/2019/Composición/3_Comp_Centro_2019pie.png written in PNG format)
+(note: file Gráficos/2019/Composición/3_Comp_del total de Áreas Protegidas_2019pie.png not found)
+(file Gráficos/2019/Composición/3_Comp_del total de Áreas Protegidas_2019pie.png written in PNG format)
+
+. 
+. foreach i in ext nacmay rprov rloc est jp men total nactotal {
+  2.     rename (total_2018`i' total_2019`i') `i'#, addnumber
+  3. }
+
+. reshape long ext nacmay rprov rloc est jp men total nactotal, i(AP) j(Año) 
+(note: j = 1 2)
+
+Data                               wide   ->   long
+-----------------------------------------------------------------------------
+Number of obs.                       38   ->      76
+Number of variables                  24   ->      16
+j variable (2 values)                     ->   Año
+xij variables:
+                              ext1 ext2   ->   ext
+                        nacmay1 nacmay2   ->   nacmay
+                          rprov1 rprov2   ->   rprov
+                            rloc1 rloc2   ->   rloc
+                              est1 est2   ->   est
+                                jp1 jp2   ->   jp
+                              men1 men2   ->   men
+                          total1 total2   ->   total
+                    nactotal1 nactotal2   ->   nactotal
+-----------------------------------------------------------------------------
+
+. sort total
+
+. replace Año=2018 if Año==1
+variable Año was byte now int
+(38 real changes made)
+
+. replace Año=2019 if Año==2
+(38 real changes made)
+
+. 
+. // 4) Bar "Visitación por tipo de visitante 2018-2019" (CANTIDAD)
+. graph bar (sum) ext nacmay rprov rloc est jp men if AP !="Total AP",              /// 
+>       over(Año, axis(lcolor(white))) stack                                        ///
+>       blabel(bar, color(white) position(center) format(%12,0gc)                   ///
+>       justification(center) size(small)) yscale(off) yscale(noline)               ///
+>       ylabel(,nolabels nogrid) ymtick(none, noticks nogrid)                       ///
+>       legend(region(lwidth(none)) size(vsmall) cols(3)                            ///
+>       label(1 "Extranjeros") label(2 "Nac. Mayores")                              ///
+>       label(3 "Res. Provinciales") label(4 "Res. Locales")                        ///
+>       label(5 "Estudiantes") label(6 "Jub. y Pens.")                              ///
+>       label(7 "Menores"))title("Visitación por tipo de visitante 2018-2019")      ///                         
+>       subtitle("Cantidad de visitantes")                                          ///
+>       clegend(region(lcolor(white))altaxis size(vsmall)) ysize(15) xsize(20)      ///
+>       graphregion(color(white) fcolor(white)) ylabel(,format(%11,0gc))            ///
+>       ytitle("Visitantes")                                                        ///
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.", size(*0.62))
+
+. graph export "Gráficos/2019/Composición/4_Visit_xCat_2019_bar.png",               ///
+>       width(1000)replace
+(note: file Gráficos/2019/Composición/4_Visit_xCat_2019_bar.png not found)
+(file Gráficos/2019/Composición/4_Visit_xCat_2019_bar.png written in PNG format)
+
+. 
+. // 5) Bar "Visitación por tipo de visitante 2018-2019" (%)
+. graph hbar (sum) ext nacmay rprov rloc est jp men if AP !="Total AP",             /// 
+>       over(Año, axis(lcolor(white))) stack percent                                ///
+>       blabel(bar, color(white) position(center) format(%11.0f)                    ///
+>       justification(center) size(small)) yscale(off) yscale(noline)               ///
+>       ylabel(, nogrid nolabels)                                                   ///
+>       ymtick(none, noticks nogrid) legend(region(lwidth(none)) cols(7)            ///
+>           size(vsmall)                                                                ///
+>       label(1 "Extranjeros") label(2 "Nac. Mayores")                              ///
+>       label(3 "Res. Provinciales") label(4 "Res. Locales")                        ///
+>       label(5 "Estudiantes") label(6 "Jub. y Pens.")                              ///
+>       label(7 "Menores"))title("Visitación por tipo de visitante 2018-2019")      ///                        
+>       subtitle("% de visitantes")                                                 ///
+>       clegend(region(lcolor(white))altaxis) ysize(10) xsize(20)                   ///
+>       graphregion(color(white)) ylabel(,format(%11,0gc))                          ///
+>       ymtick(none, noticks nogrid) ytitle(Visitantes)                             ///
+>       graphregion(fcolor(white) color(white))                                     ///
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.") 
+
+. graph export "Gráficos/2019/Composición/5_Visit_xCat_2019_bar%.png",         ///
+>       width(1000) replace
+(note: file Gráficos/2019/Composición/5_Visit_xCat_2019_bar%.png not found)
+(file Gráficos/2019/Composición/5_Visit_xCat_2019_bar%.png written in PNG format)
+
+. 
+. replace Reg = "Total AP" if Reg == "del total de Áreas Protegidas"
+(2 real changes made)
+
+. // 6) Bar "Visitación por Región y Total 2018-2019" (CANTIDAD)
+. graph bar (sum) total, over(Año, axis(lcolor(white)))                             ///
+>       over(Reg, sort((sum)total) axis(lcolor(white))) asyvars                     ///
+>       bar(1,color(edkblue)) bar(2,color(maroon))                                  ///
+>       clegend(region(lcolor(white))altaxis) blabel (bar, position(outside)        ///
+>       format(%12,0gc) color(black)) yscale(off) yscale(noline)                    ///
+>       ylabel(,nolabels nogrid) scale(*.75) legend(region(lwidth(none)))           ///
+>       ysize(20) xsize(20) ytitle(Visitantes)                                      ///
+>       subtitle("Cantidad de visitantes")                                          ///
+>       title("Visitación total y por región 2018-2019")                            ///
+>       graphregion(fcolor(white) color(white))                                     ///
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.")
+
+. graph export "Gráficos/2019/Composición/6_Visit_xReg_2019_bar.png",               ///
+> width(1000) replace
+(note: file Gráficos/2019/Composición/6_Visit_xReg_2019_bar.png not found)
+(file Gráficos/2019/Composición/6_Visit_xReg_2019_bar.png written in PNG format)
+
+. 
+. // 7) Bar "Visitación por región 2018-2019"(%)
+. graph hbar (sum) total if AP!="Total AP", by(Año,graphregion(fcolor(white)))      ///
+>       yla(,labcolor(bg) tlength(0)) over(Reg) stack percent asyvars               ///                        
+>       bar(1, color(teal)) bar(2,color(forest_green)) bar(3,color(dkorange))       ///                       
+>       bar(4,color(ebblue)) ylabel(,nolabels nogrid) ytitle("")                    ///
+>       blabel(bar, position(center) format(%12.0f) color(white)                    ///
+>       size(medium)) graphregion(color(white) fcolor(white)) bgcolor(white)        ///
+>       ysize(10) xsize(20) legend(region(lwidth(none)) size(small) cols(5))        ///
+>       yscale(noline) subtitle(,lcolor(gs12) fcolor(gs15))                         ///
+>       by(Año, title("Visitación por región 2018-2019")                            ///
+>       subtitle("% de visitantes") scale(*.90)                                     ///                                 
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales."))
+
+. 
+.           local ng=`.Graph.graphs.arrnels'
+
+.           forval g=1/`ng' {
+  2.                   local nb=`.Graph.graphs[`g'].plotregion1.barlabels.arrnels'
+  3.                   forval i=1/`nb' {
+  4.                     di "`.Graph.graphs[`g'].plotregion1.barlabels[`i'].text[1]'"
+  5.                     .Graph.graphs[`g'].plotregion1.barlabels[`i'].text[1]="`.Graph.graphs[`g'].plotregion1.barlabels[`i'].text[1]'%"
+  6.                   }
+  7.           }
+10
+38
+3
+50
+8
+39
+3
+50
+
+.           .Graph.drawgraph
+
+. 
+. graph export "Gráficos/2019/Composición/7_Visit_xReg_2019_bar%.png",              ///
+>       width(1000) replace
+(note: file Gráficos/2019/Composición/7_Visit_xReg_2019_bar%.png not found)
+(file Gráficos/2019/Composición/7_Visit_xReg_2019_bar%.png written in PNG format)
+
+. 
+. // 8) Pie "Visitación por región 2018-2019"
+. graph pie total if AP!="Total AP", by(Año) over(Reg)                              ///
+>       graphregion(color(white) fcolor(white)) bgcolor(white) ysize(10)            ///
+>       xsize(20)legend(region(lwidth(none)))                                       ///
+>       by(Año, graphregion(fcolor(white)) title(                                   ///
+>       "Visitación por región 2018-2019") subtitle("% de visitantes")              ///                
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.") ///
+>       scale(*.90)) legend(size(small) region(lwidth(none)) cols(4))               ///
+>           plabel(_all per, format(%9.0f) size(medsmall) color(white))                 ///
+>       pie(1, color(teal)) pie(2,color(forest_green)) pie(3,color(dkorange))       ///
+>       pie(4,color(ebblue)) subtitle(,lcolor(gs12) fcolor(gs15)) 
+
+. graph export "Gráficos/2019/Composición/8_Visit_xReg_2019_pie.png",               ///
+>       width(1000) replace
+(note: file Gráficos/2019/Composición/8_Visit_xReg_2019_pie.png not found)
+(file Gráficos/2019/Composición/8_Visit_xReg_2019_pie.png written in PNG format)
+
+. 
+. // 9) Bar "Visitación por categoría de Visitante 2018-2019" (%)
+. graph hbar (sum) ext nacmay rprov rloc est jp men, over(Año)                      ///
+>       over(Reg) stack percent ysize(10) xsize(20)                                 ///
+>       ylabel(,nogrid format(%11,0gc)) scale(*.80) ytitle(%)                       ///
+>       graphregion(fcolor(white)) blabel(bar,position(center) format(%12.0f)       ///
+>       color(white) size(vsmall)) legend(region(lwidth(none)) cols(7) size(small)  ///
+>       label(1 "Extranjeros") label(2 "Nac. Mayores")                              ///
+>       label(3 "Res. Provinciales") label(4 "Res. Locales")                        ///
+>       label(5 "Estudiantes") label(6 "Jub. y Pens.")                              ///
+>       label(7 "Menores")) subtitle("% de visitantes")                             ///
+>       title("Visitación por categoría de visitante 2018-2019")                    ///
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.")
+
+. graph export "Gráficos/2019/Composición/9_Visit_xCat_2019reg_bar%.png",           ///
+>       width(1000) replace
+(note: file Gráficos/2019/Composición/9_Visit_xCat_2019reg_bar%.png not found)
+(file Gráficos/2019/Composición/9_Visit_xCat_2019reg_bar%.png written in PNG format)
+
+. 
+. drop if AP =="Total AP" | total ==0
+(7 observations deleted)
+
+. gsort -Año -total      
+
+. gen orden = _n
+
+. replace orden =. if Año ==2018
+(35 real changes made, 35 to missing)
+
+. 
+. // 10) Bar "Visitación de AP con cobro de derechos de acceso 2018-2019" (CANTIDAD)
+. graph bar (sum) total if Acceso=="COBRA" & total >0,                              ///
+>       over(Año, axis(lcolor(white)))                                              ///
+>       over(AP,sort(orden) axis(lcolor(white))                                     ///
+>       label(angle(45)labsize(vsmall))) asyvars bar(1,color(edkblue))              ///
+>       bar(2,color(maroon)) clegend(region(lcolor(white))altaxis)                  ///
+>       blabel(bar, position(outside) format(%12,1gc) color(black)                  ///
+>       size(vsmall)) yscale(off) yscale(noline) ylabel(,nolabels nogrid)           ///
+>       scale(*.90) legend(region(lwidth(none))) ysize(10) xsize(20)                ///
+>       ytitle(Visitantes) subtitle("Cantidad de visitantes")                       ///
+>       title("Visitación de AP con cobro de derechos de acceso 2018-2019")         ///
+>       graphregion(fcolor(white) color(white))                                     ///
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.")
+
+. graph export "Gráficos/2019/Composición/10_Visit_Tot_2019cdacceso_bar.png",       ///
+> width(2000) replace  
+(note: file Gráficos/2019/Composición/10_Visit_Tot_2019cdacceso_bar.png not found)
+(file Gráficos/2019/Composición/10_Visit_Tot_2019cdacceso_bar.png written in PNG format)
+
+. 
+. // 11) Bar "Visitación de AP sin cobro de derechos de acceso 2018-2019" (CANTIDAD)
+. graph bar (sum) total if Acceso=="NO COBRA" & total >0,                      ///
+>       over(Año, axis(lcolor(white)))                                         ///
+>       over(AP,sort(orden) axis(lcolor(white))                                ///
+>       label(angle(45)labsize(vsmall))) asyvars bar(1,color(edkblue))         ///
+>       bar(2,color(maroon)) clegend(region(lcolor(white))altaxis)             ///
+>       blabel(bar, position(outside) format(%12,1gc) color(black) size(tiny)) ///
+>       yscale(off) yscale(noline) ylabel(,nolabels nogrid) scale(*.85)        ///
+>       legend(region(lwidth(none))) ysize(10) xsize(20) ytitle(Visitantes)    ///
+>       subtitle("Cantidad de visitantes")                                     ///
+>       title("Visitación de AP sin cobro de derechos de acceso 2018-2019")    ///
+>       graphregion(fcolor(white) color(white))                                ///
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.")
+
+. graph export "Gráficos/2019/Composición/11_Visit_Tot_2019sdacceso_bar.png",  ///
+> width(2000) replace   
+(note: file Gráficos/2019/Composición/11_Visit_Tot_2019sdacceso_bar.png not found)
+(file Gráficos/2019/Composición/11_Visit_Tot_2019sdacceso_bar.png written in PNG format)
+
+. 
+. // 12) Bar "Visitación por cobro de derechos de acceso 2018-2019" (CANTIDAD)
+. graph bar (sum) total if AP !="Total AP", over(Año, axis(lcolor(white)))          ///
+>       over(Acceso, sort(orden) axis(lcolor(white))) asyvars                       ///
+>       bar(1,color(edkblue)) bar(2,color(maroon))                                  ///
+>       clegend(region(lcolor(white))altaxis) blabel(bar, position(outside)         ///
+>       format(%12,1gc) color(black) size(medsmall)) yscale(off) yscale(noline)     ///
+>       ylabel(,nolabels nogrid) scale(*.75) legend(region(lwidth(none)))           ///
+>       ysize(20) xsize(20) ytitle(Visitantes)                                      ///
+>       subtitle("Cantidad de visitantes")                                          ///
+>       title("Visitación por cobro de derechos de acceso 2018-2019")               ///
+>       graphregion(fcolor(white) color(white))                                     ///
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.")
+
+. graph export "Gráficos/2019/Composición/12_Visit_Tot_2019xCDA_bar.png",           ///
+> width(1000) replace     
+(note: file Gráficos/2019/Composición/12_Visit_Tot_2019xCDA_bar.png not found)
+(file Gráficos/2019/Composición/12_Visit_Tot_2019xCDA_bar.png written in PNG format)
+
+. 
+. *Prepara base para hacer el Top 15 
+. replace AP = char(34)+AP[_n]+char(34)
+(69 real changes made)
+
+. levelsof AP in 1/5, clean sep(,) local(Top5) 
+"Iguazú","Lago Puelo","Los Glaciares","Nahuel Huapi","Tierra del Fuego"
+
+. levelsof AP in 6/10, clean sep(,) local(Top10)
+"El Palmar","Lanín","Los Alerces","Los Cardones","Talampaya"
+
+. levelsof AP in 11/15, clean sep(,) local(Top15)
+"Calilegua","El Leoncito","Pre Delta","Quebrada del Condorito","Sierra de las Quijadas"
+
+. replace AP = subinstr(AP,char(34),"",.) 
+(69 real changes made)
+
+. 
+. // 13) Bar "Top 15 visitación 2018-2019" (CANTIDAD)
+. graph bar (sum) total if inlist(AP,`Top5') | inlist(AP,`Top10') |                 ///
+>       inlist(AP,`Top15'), over(Año, axis(lcolor(white)))                          ///
+>       over(AP,sort(orden)  axis(lcolor(white))                                    ///
+>       label(angle(45)labsize(vsmall))) asyvars bar(1,color(edkblue))              ///
+>       bar(2,color(maroon)) clegend(region(lcolor(white))altaxis)                  ///
+>       blabel(bar, position(outside) format(%12,1gc) color(black)                  ///
+>       size(tiny)) yscale(off) yscale(noline) ylabel(,nolabels nogrid)             ///
+>       scale(*.90) legend(region(lwidth(none))) ysize(10) xsize(20)                ///
+>       ytitle("Visitantes") subtitle("Cantidad de visitantes")                     ///
+>       title("Top 15 de visitación 2018-2019")                                     ///
+>       graphregion(fcolor(white) color(white))                                     ///
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.")
+
+. graph export "Gráficos/2019/Composición/13_Visit_Top15_2019_bar.png",             ///
+> width(2000) replace 
+(note: file Gráficos/2019/Composición/13_Visit_Top15_2019_bar.png not found)
+(file Gráficos/2019/Composición/13_Visit_Top15_2019_bar.png written in PNG format)
+
+. 
+. // 14) Bar "Extranjeros Nacionales" (CANTIDAD) 
+. graph bar (sum) ext nactotal if inlist(AP,`Top5') | inlist(AP,`Top10'),           ///
+>       stack over(Año, axis(lcolor(white)) label(angle(45)))                       ///
+>       over(AP, sort(orden) label(angle(45)) axis(lcolor(white)))                  ///
+>       bar(1,color(edkblue))  bar(2,color(maroon))                                 ///
+>       clegend(region(lcolor(white))altaxis) blabel(bar, position(center)          ///
+>       format(%12,1gc) color(black) size(small)) yscale(off) yscale(noline)        ///
+>       ylabel(, labsize(small) nogrid) scale(*.70)                                 ///
+>       legend(region(lwidth(none)) label(1 "Extranjeros")                          ///
+>       label(2 "Nacionales")) ysize(10) xsize(20)                                  ///
+>       ytitle("Visitantes") subtitle("Cantidad de visitantes")                     ///
+>       title("Top 10 de visitación Nacionales y Extranjeros  2018-2019")           ///
+>       graphregion(fcolor(white) color(white))                                     ///
+>       note("Fuente: DATOS FICTICIOS - Dirección de Mercadeo - Dirección Nacional de Uso Público - Administración de Parques Nacionales.")
+
+. graph export "Gráficos/2019/Composición/14_Visit_Top10ext-nac_2019_bar.png",      ///
+> width(2000) replace 
+(note: file Gráficos/2019/Composición/14_Visit_Top10ext-nac_2019_bar.png not found)
+(file Gráficos/2019/Composición/14_Visit_Top10ext-nac_2019_bar.png written in PNG format)
+
+. 
+. window manage close graph
+
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Franco\Dropbox\GitHub\Parques_Nacionales\Logs/gr_2019_2018-Visit-Composic_Ficticio.log
+  log type:  text
+ closed on:  26 Feb 2021, 20:07:48
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

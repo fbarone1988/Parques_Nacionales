@@ -1,0 +1,24 @@
+StataFileTM:00001:01100:GREC:                          :
+00003:00003:00001:
+*! classname: bygraph_g
+*! family: by
+*! date:  4 Jan 2019
+*! time: 13:35:11
+*! graph_scheme: s2color
+*! naturallywhite: 1
+*! end
+
+// File created by Graph Editor Recorder.
+// Edit only if you know what you are doing.
+
+.plotregion1.scaleaxis[3].draw_view.setstyle, style(no)
+// scaleaxis[3] edits
+
+.plotregion1.scaleaxis[5].draw_view.setstyle, style(no)
+// scaleaxis[5] edits
+
+.plotregion1.scaleaxis[4].draw_view.setstyle, style(no)
+// scaleaxis[4] edits
+
+
+// <end>
